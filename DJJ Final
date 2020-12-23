@@ -1,0 +1,292 @@
+//----------------------------------------------------------------------------DJJ READING FINAL----------------------------------------------
+//-----------------------------------------------------------------------------MARA CORPORATION----------------------------------------------
+// LIBRARY NEEDED:
+// 1)KICKMATH
+// 2)ADAFRUIT ADS1015
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+#include <Wire.h>
+#include <Adafruit_ADS1015.h>
+#include "KickSort.h"
+#include "KickMath.h"
+
+
+//------------------------------------Filter Digital------------------
+float fc;
+float RC;
+float adc0_1;
+float PVf_1;
+float a;
+
+//-------------------------------------DATA--------------------------
+float sinyal1;
+uint16_t sinyal;
+const uint16_t sample = 1500;
+int16_t sampleArray[sample];
+const uint16_t q = 1500;
+int16_t sampleArray2[q];
+unsigned int sampleCounter = 0;
+uint16_t i;
+uint16_t n;
+int16_t jumlah1;
+uint16_t jumlah[q];
+uint16_t jumlah2;
+uint16_t jumlah3;
+uint16_t jumlah4;
+uint16_t jumlah5;
+uint16_t med2;
+
+
+//--------------------------------------ADS1115-----------------------
+int16_t adc0;
+Adafruit_ADS1115 ads(0x48);
+
+
+void setup(void)
+{
+  Serial.begin(500000);
+//--------------------------------------------Filter Digital(Optional)----------------------------------
+  fc = 0.092000;
+  RC = 1 / (6.28000 * fc);
+  a = RC / 0.1000;
+  PVf_1 = 0;
+
+  
+//--------------------------------------------Penguatan ADS1115------------------------------------------
+  // ads.setGain(GAIN_TWOTHIRDS);  // 2/3x gain +/- 6.144V  1 bit = 0.1875mV (default)
+  // ads.setGain(GAIN_ONE);        // 1x gain   +/- 4.096V  1 bit = 0.125mV
+  // ads.setGain(GAIN_TWO);        // 2x gain   +/- 2.048V  1 bit = 0.0625mV
+  // ads.setGain(GAIN_FOUR);       // 4x gain   +/- 1.024V  1 bit = 0.03125mV
+  // ads.setGain(GAIN_EIGHT);      // 8x gain   +/- 0.512V  1 bit = 0.015625mV
+  ads.setGain(GAIN_SIXTEEN);    // 16x gain  +/- 0.256V  1 bit = 0.0078125mV
+  ads.begin();
+
+  
+}
+
+
+void loop(void)
+{
+//  adc0 = ads.readADC_SingleEnded(0);
+//  adc0_1 = (adc0 + a * PVf_1) / (a + 1);
+
+//-------------------------------------------------------Hitung Mundur 10 detik----------------------------
+//  for (i=0; i<=10; i++)
+//  {
+//    Serial.print("Hitung Mundur :  ");
+//    Serial.print("        ");
+//    Serial.println(i);
+//    delay(1000);
+//  }
+
+
+  for (i=0; i<=1500; i++) //baca sinyal selama 15 detik
+  {
+    sinyal = ads.readADC_SingleEnded(0);
+    sampleArray[i]=sinyal;
+    Serial.print(i);
+    Serial.print("        ");
+    Serial.println(sampleArray[i]);
+  }
+  
+  KickSort<int16_t>::quickSort(sampleArray, sample, KickSort_Dir::DESCENDING); // mengurutkan
+  int16_t avg1 = KickMath<int16_t>::calcAverage(sample, sampleArray );
+
+  for (i=0; i<1500; i++)
+  {
+    if(sampleArray[i]>avg1)
+    {
+      sampleArray2[i]=sampleArray[i];
+      jumlah1=i;
+      Serial.print("rata-rata1: ");
+      Serial.print(avg1);
+      Serial.print("  i:  ");
+      Serial.print(i);
+      Serial.print("   array2:   ");
+      Serial.println(sampleArray2[i]);
+    }  
+  }
+  
+  Serial.print("jumlah akhir:  ");
+  Serial.println(jumlah1);
+  const int16_t m = jumlah1;
+  int16_t sampleArray3[m];
+
+  for (n=0; n<jumlah1; n++)
+  {
+    sampleArray3[n]=sampleArray2[n];
+    Serial.print("n:  ");
+    Serial.print(n);
+    Serial.print("  array baru:   ");
+    Serial.println(sampleArray3[n]);
+  }
+
+  int16_t avg2 = KickMath<int16_t>::calcAverage(m, sampleArray3);
+  Serial.print("rata-rata2: ");
+  Serial.println(avg2);
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+  for (i=0; i<jumlah1; i++)
+  {
+    if(sampleArray3[i]>avg2)
+    {
+      sampleArray[i]=sampleArray3[i];
+      jumlah2=i;
+      Serial.print("rata-rata2: ");
+      Serial.print(avg2);
+      Serial.print("  i2:  ");
+      Serial.print(i);
+      Serial.print("   array3:   ");
+      Serial.println(sampleArray[i]);
+    }  
+  }
+
+  Serial.print("jumlah akhir 2:  ");
+  Serial.println(jumlah2);
+  const int16_t q = jumlah2;
+  int16_t sampleArray4[q];
+
+  for (n=0; n<jumlah2; n++)
+  {
+    sampleArray4[n]=sampleArray[n];
+    Serial.print("n2:  ");
+    Serial.print(n);
+    Serial.print("  array baru2:   ");
+    Serial.println(sampleArray4[n]);
+  }
+
+  int16_t avg3 = KickMath<int16_t>::calcAverage(q, sampleArray4);
+  Serial.print("rata-rata3: ");
+  Serial.println(avg3);
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+   for (i=0; i<jumlah2; i++)
+  {
+    if(sampleArray4[i]>avg3)
+    {
+      sampleArray[i]=sampleArray4[i];
+      jumlah3=i;
+      Serial.print("rata-rata3: ");
+      Serial.print(avg3);
+      Serial.print("  i3:  ");
+      Serial.print(i);
+      Serial.print("   array4:   ");
+      Serial.println(sampleArray[i]);
+    }  
+  }
+
+  Serial.print("jumlah akhir 3:  ");
+  Serial.println(jumlah3);
+  const int16_t w = jumlah3;
+  int16_t sampleArray5[w];
+
+  for (n=0; n<jumlah3; n++)
+  {
+    sampleArray5[n]=sampleArray[n];
+    Serial.print("n3:  ");
+    Serial.print(n);
+    Serial.print("  array baru3:   ");
+    Serial.println(sampleArray5[n]);
+  }
+
+  int16_t avg4 = KickMath<int16_t>::calcAverage(w, sampleArray5);
+  Serial.print("rata-rata4: ");
+  Serial.println(avg4);
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+   for (i=0; i<jumlah3; i++)
+  {
+    if(sampleArray5[i]>avg4)
+    {
+      sampleArray[i]=sampleArray5[i];
+      jumlah4=i;
+      Serial.print("rata-rata4: ");
+      Serial.print(avg4);
+      Serial.print("  i4:  ");
+      Serial.print(i);
+      Serial.print("   array5:   ");
+      Serial.println(sampleArray[i]);
+    }  
+  }
+
+  Serial.print("jumlah akhir 4:  ");
+  Serial.println(jumlah4);
+  const int16_t e = jumlah4;
+  int16_t sampleArray6[e];
+
+  for (n=0; n<jumlah3; n++)
+  {
+    sampleArray6[n]=sampleArray[n];
+    Serial.print("n4:  ");
+    Serial.print(n);
+    Serial.print("  array baru4:   ");
+    Serial.println(sampleArray6[n]);
+  }
+
+  int16_t avg5 = KickMath<int16_t>::calcAverage(e, sampleArray6);
+  Serial.print("rata-rata4: ");
+  Serial.println(avg5);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+   for (i=0; i<jumlah4; i++)
+  {
+    if(sampleArray6[i]>avg5)
+    {
+      sampleArray[i]=sampleArray6[i];
+      jumlah5=i;
+      Serial.print("rata-rata5: ");
+      Serial.print(avg5);
+      Serial.print("  i5:  ");
+      Serial.print(i);
+      Serial.print("   array6:   ");
+      Serial.println(sampleArray[i]);
+    }  
+  }
+
+  Serial.print("jumlah akhir 5:  ");
+  Serial.println(jumlah5);
+  const int16_t r = jumlah5;
+  int16_t sampleArray7[r];
+
+  for (n=0; n<jumlah3; n++)
+  {
+    sampleArray7[n]=sampleArray[n];
+    Serial.print("n5:  ");
+    Serial.print(n);
+    Serial.print("  array baru5:   ");
+    Serial.println(sampleArray7[n]);
+  }
+
+  int16_t avg6 = KickMath<int16_t>::calcAverage(r, sampleArray7);
+  Serial.print("rata-rata5: ");
+  Serial.println(avg6);
+  
+
+
+ Serial.println(" ");
+ Serial.println(" ");
+ Serial.println(" ");
+ Serial.print("rata- rata 1:  ");Serial.print(avg1);Serial.print("  jumlah 1:  "); Serial.println(jumlah1);
+ Serial.print("rata- rata 2:  ");Serial.print(avg2);Serial.print("  jumlah 2:  "); Serial.println(jumlah2);
+ Serial.print("rata- rata 3:  ");Serial.print(avg3);Serial.print("  jumlah 3:  "); Serial.println(jumlah3);
+ Serial.print("rata- rata 4:  ");Serial.print(avg4);Serial.print("  jumlah 4:  "); Serial.println(jumlah4);
+ Serial.print("rata- rata 5:  ");Serial.print(avg5);Serial.print("  jumlah 5:  "); Serial.println(jumlah5);
+ Serial.print("rata- rata 6:  ");Serial.println(avg6);
+ Serial.println("waiting");
+ delay (50000);
+
+  
+  
+  
+
+  
+
+  
+
+
+
+
+
+
+  
+
+//  PVf_1 = adc0_1;
+
+}
